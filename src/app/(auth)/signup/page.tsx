@@ -58,7 +58,7 @@ export default function SignupPage() {
 
       <form onSubmit={handleSubmit} className="space-y-4" noValidate>
         {[
-          { key: 'fullName', label: 'Full name', placeholder: 'Harsh Pandey', type: 'text' },
+          { key: 'fullName', label: 'Full name', placeholder: 'don joe', type: 'text' },
           { key: 'email', label: 'Email', placeholder: 'you@iitmandi.ac.in', type: 'email' },
           { key: 'college', label: 'College', placeholder: 'IIT Mandi (optional)', type: 'text', optional: true },
         ].map(({ key, label, placeholder, type, optional }) => (
