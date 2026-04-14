@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
+/** Renders the email/password login form, validates inputs, calls Supabase signInWithPassword, and redirects to the dashboard on success. */
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,6 +22,7 @@ function LoginForm() {
       toast.error("Authentication failed. Try again.");
   }, [searchParams]);
 
+  /** Validates the form, submits credentials to Supabase, and handles error messages for common failure cases. */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const ve: Record<string, string> = {};
@@ -41,6 +43,7 @@ function LoginForm() {
     finally { setLoading(false); }
   }
 
+  /** Returns value and onChange props for a controlled input field, clearing the field's error on change. */
   const F = (key: keyof typeof form) => ({
     value: form[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {

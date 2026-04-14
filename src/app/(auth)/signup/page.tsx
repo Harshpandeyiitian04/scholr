@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
+/** Renders the signup form, collects user details, calls Supabase signUp, and redirects to login with a confirmation prompt. */
 export default function SignupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -13,6 +14,7 @@ export default function SignupPage() {
   const [form, setForm] = useState({ fullName: "", email: "", password: "", college: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  /** Validates all form fields and returns a map of field names to error messages. */
   function validate() {
     const e: Record<string, string> = {};
     if (!form.fullName.trim()) e.fullName = "Required";
@@ -23,6 +25,7 @@ export default function SignupPage() {
     return e;
   }
 
+  /** Validates the form, registers the user with Supabase, and redirects to the login page on success. */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const ve = validate();
@@ -41,6 +44,7 @@ export default function SignupPage() {
     finally { setLoading(false); }
   }
 
+  /** Returns value and onChange props for a controlled input field, clearing that field's error on change. */
   const F = (key: keyof typeof form) => ({
     value: form[key],
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,3 +1,4 @@
+/** Skeleton loading placeholder shown while the dashboard page data is being fetched server-side. */
 export default function DashboardLoading() {
   return (
     <div className="p-6 max-w-4xl animate-pulse">

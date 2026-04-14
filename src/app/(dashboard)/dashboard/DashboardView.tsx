@@ -20,6 +20,7 @@ type Props = {
   docs: Document[] | null;
 };
 
+/** Maps a document status string to its badge background colour, text colour, and display label. */
 const statusStyle = (s: string) =>
   ({
     ready:      { bg: 'rgba(34,197,94,0.1)',  color: '#4ade80',  text: 'Ready' },
@@ -27,6 +28,7 @@ const statusStyle = (s: string) =>
     failed:     { bg: 'rgba(239,68,68,0.1)',  color: '#f87171',  text: 'Failed' },
   }[s] ?? { bg: 'rgba(255,255,255,0.05)', color: 'var(--text-3)', text: s });
 
+/** Renders the full dashboard UI — personalised greeting, stat cards, quick-action links, and a list of recent documents — using the data fetched by the server component. */
 export default function DashboardView({ firstName, greeting, docCount, quizCount, chatCount, profile, docs }: Props) {
   return (
     <div className="p-7 max-w-5xl animate-fade-up">

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Sidebar from "@/components/dashboard/sidebar";
 
+/** Protects all dashboard routes by redirecting unauthenticated users to login, then renders the sidebar and main content area. */
 export default async function DashboardLayout({
   children,
 }: {

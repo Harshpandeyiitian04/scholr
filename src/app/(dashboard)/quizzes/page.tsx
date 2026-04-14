@@ -22,6 +22,7 @@ const DIFFS = [
   { id: "mixed", label: "Mixed", color: '#a5b4fc', bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.3)' },
 ];
 
+/** Renders the quiz-creation form with document selection, question types, difficulty, and count, then calls the generate API. */
 export default function NewQuizPage() {
   const router = useRouter();
   const [docs, setDocs] = useState<Document[]>([]);
@@ -37,10 +38,12 @@ export default function NewQuizPage() {
       .then(({ data }) => { setDocs(data ?? []); if (data?.[0]) setSelectedDoc(data[0].id); setLoadingDocs(false); });
   }, []);
 
+  /** Toggles a question type on or off, ensuring at least one type stays selected. */
   function toggle(id: string) {
     setTypes(p => p.includes(id) ? (p.length > 1 ? p.filter(t => t !== id) : p) : [...p, id]);
   }
 
+  /** Sends the quiz configuration to the generate API and navigates to the newly created quiz on success. */
   async function generate() {
     if (!selectedDoc) { toast.error("Select a document first"); return; }
     setLoading(true);
@@ -66,7 +69,6 @@ export default function NewQuizPage() {
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-        {/* Document */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>Document</label>
           {loadingDocs ? (
@@ -83,7 +85,6 @@ export default function NewQuizPage() {
           )}
         </div>
 
-        {/* Question types */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>Question types</label>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
@@ -105,7 +106,6 @@ export default function NewQuizPage() {
           </div>
         </div>
 
-        {/* Difficulty */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>Difficulty</label>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 8 }}>
@@ -120,7 +120,6 @@ export default function NewQuizPage() {
           </div>
         </div>
 
-        {/* Count */}
         <div>
           <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: 'var(--text-2)', marginBottom: 8 }}>
             Questions — <span style={{ color: '#818cf8' }}>{count}</span>

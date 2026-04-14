@@ -5,6 +5,7 @@ import { groqChat, extractJSON } from "@/lib/ai/client";
 
 export const maxDuration = 60;
 
+/** Generates quiz questions from the extracted text of a document using Groq, sanitises the JSON output, and saves the quiz to the database. */
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -35,7 +36,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Document not ready or not found" }, { status: 404 });
     }
 
-    // Cap text to avoid token limits
     const textForQuiz = doc.extracted_text.slice(0, 6000);
     const safeCount = Math.min(Math.max(count || 5, 3), 15);
 
@@ -106,7 +106,6 @@ Return ONLY the JSON array:`;
       );
     }
 
-    // Sanitize questions
     questions = questions.slice(0, safeCount).map((q: Record<string, unknown>, i: number) => ({
       id: `q${i + 1}`,
       type: q.type ?? "mcq",
@@ -118,7 +117,6 @@ Return ONLY the JSON array:`;
       topic: String(q.topic ?? "General"),
     }));
 
-    // Save quiz to DB
     const { data: quiz, error: quizErr } = await admin
       .from("quizzes")
       .insert({

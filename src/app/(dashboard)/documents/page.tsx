@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DocumentsView from "./DocumentsView";
 
+/** Fetches all documents belonging to the authenticated user from Supabase and passes them to DocumentsView for rendering. */
 export default async function DocumentsPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

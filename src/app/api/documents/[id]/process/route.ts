@@ -5,7 +5,7 @@ import { geminiVision, groqChat } from "@/lib/ai/client";
 
 export const maxDuration = 60;
 
-// Only used for Gemini Vision (scanned PDFs / images)
+/** Retries an async function up to `retries` times, doubling the wait after each 429 rate-limit error before re-throwing any other error. */
 async function withRetry<T>(
   fn: () => Promise<T>,
   retries = 2,
@@ -29,16 +29,15 @@ async function withRetry<T>(
   throw new Error("Max retries exceeded");
 }
 
+/** Converts a Node.js Buffer to the inline data object format expected by the Gemini Vision API. */
 function bufferToInlineData(buffer: Buffer, mimeType: string) {
   return { inlineData: { data: buffer.toString("base64"), mimeType } };
 }
 
-// Local summary — zero API calls, works offline
-// Picks the most content-rich sentences from the extracted text
+/** Scores each sentence by the ratio of content words to total words and returns the top three most information-dense sentences joined into a single summary string. Used as a local fallback when the AI summary call is rate-limited. */
 function generateLocalSummary(text: string, fileName: string): string {
   const cleaned = text.replace(/\s+/g, " ").trim();
 
-  // Split into sentences
   const sentences = cleaned
     .split(/(?<=[.!?])\s+/)
     .map((s) => s.trim())
@@ -49,7 +48,6 @@ function generateLocalSummary(text: string, fileName: string): string {
     return `${words}...`;
   }
 
-  // Score sentences by keyword density (skip headers/metadata)
   const stopWords = new Set([
     "the", "a", "an", "is", "are", "was", "were", "be", "been",
     "being", "have", "has", "had", "do", "does", "did", "will",
@@ -64,7 +62,6 @@ function generateLocalSummary(text: string, fileName: string): string {
     return { s, score: contentWords.length / words.length };
   });
 
-  // Take top 3 most content-dense sentences in order
   const top = scored
     .map((x, i) => ({ ...x, i }))
     .sort((a, b) => b.score - a.score)
@@ -75,6 +72,7 @@ function generateLocalSummary(text: string, fileName: string): string {
   return top.join(" ");
 }
 
+/** Downloads the uploaded document, extracts its text (pdf-parse for PDFs, mammoth for DOCX, Gemini Vision for scanned PDFs/images/PPTX), generates an AI summary via Groq (falling back to a local summary on rate-limit), and saves everything to the database with status "ready". */
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -100,7 +98,10 @@ export async function POST(
       .single();
 
     if (docErr || !doc) {
-      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Document not found" },
+        { status: 404 },
+      );
     }
 
     const { data: fileBlob, error: fileErr } = await admin.storage
@@ -111,7 +112,7 @@ export async function POST(
       await admin.from("documents").update({ status: "failed" }).eq("id", id);
       return NextResponse.json(
         { error: "Could not download file" },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -119,7 +120,6 @@ export async function POST(
     let extractedText = "";
     let usedVision = false;
 
-    // ── PDF ─────────────────────────────────────────────────────────────────
     if (doc.file_type === "application/pdf") {
       try {
         const pdfParse = await import("pdf-parse/lib/pdf-parse.js");
@@ -137,7 +137,6 @@ export async function POST(
         extractedText = "";
       }
 
-      // Only use Gemini Vision if truly scanned (< 100 real chars)
       if (extractedText.replace(/\s+/g, "").length < 100) {
         console.log("Scanned PDF → Gemini Vision OCR");
         usedVision = true;
@@ -150,7 +149,6 @@ export async function POST(
         extractedText = result.response.text();
       }
 
-    // ── DOCX ────────────────────────────────────────────────────────────────
     } else if (
       doc.file_type ===
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
@@ -160,7 +158,6 @@ export async function POST(
       const result = await mammoth.extractRawText({ buffer });
       extractedText = result.value ?? "";
 
-    // ── PPTX ────────────────────────────────────────────────────────────────
     } else if (
       doc.file_type ===
       "application/vnd.openxmlformats-officedocument.presentationml.presentation"
@@ -174,7 +171,6 @@ export async function POST(
       );
       extractedText = result.response.text();
 
-    // ── Images ──────────────────────────────────────────────────────────────
     } else if (doc.file_type.startsWith("image/")) {
       usedVision = true;
       const result = await withRetry(() =>
@@ -194,8 +190,8 @@ export async function POST(
       );
     }
 
-    // ── Summary: try Groq first, fall back to local ─────────────────────────
     let summary = "";
+    let summaryRateLimited = false;
     try {
       summary = await groqChat(
         "You are an expert academic summarizer for Indian engineering students. Be concise.",
@@ -203,12 +199,18 @@ export async function POST(
         256
       );
       summary = summary.trim();
-    } catch (err) {
-      console.log("Groq summary failed, using local summary:", err);
-      summary = generateLocalSummary(extractedText, doc.file_name);
+    } catch (summaryErr: unknown) {
+      const msg =
+        summaryErr instanceof Error ? summaryErr.message : String(summaryErr);
+      if (msg.includes("429") || msg.includes("Too Many Requests")) {
+        console.log("Summary rate-limited — falling back to local summary");
+        summaryRateLimited = true;
+        summary = generateLocalSummary(extractedText, doc.file_name);
+      } else {
+        throw summaryErr;
+      }
     }
 
-    // ── Save ─────────────────────────────────────────────────────────────────
     await admin
       .from("documents")
       .update({
@@ -223,14 +225,26 @@ export async function POST(
       await admin.rpc("increment_queries", { user_id: user.id });
     } catch {}
 
-    return NextResponse.json({ success: true, summary, usedVision });
+    return NextResponse.json({ success: true, summary, usedVision, summaryRateLimited });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Processing failed";
     console.error("Processing error:", message);
+
+    if (message.includes("429") || message.includes("Too Many Requests")) {
+      return NextResponse.json(
+        {
+          error:
+            "Gemini free tier rate limit hit. Wait 1 minute and try uploading again.",
+        },
+        { status: 429 },
+      );
+    }
+
     try {
       const admin = createAdminClient();
       await admin.from("documents").update({ status: "failed" }).eq("id", id);
     } catch {}
+
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

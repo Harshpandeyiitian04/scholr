@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import DashboardView from "./DashboardView";
 
+/** Fetches the authenticated user's profile, recent documents, quiz count, and chat count from Supabase, then passes the data to the client-side DashboardView for rendering. */
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

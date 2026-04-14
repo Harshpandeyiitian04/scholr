@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   keywords: ["study", "AI", "quiz", "notes", "engineering", "GATE", "JEE"],
 };
 
+/** Root layout that applies global fonts, metadata, and the Sonner toast provider to every page. */
 export default function RootLayout({
   children,
 }: {

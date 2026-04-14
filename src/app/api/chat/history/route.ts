@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+/** Returns the last 50 chat messages (in chronological order) for the document specified by the `documentId` query parameter. */
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();

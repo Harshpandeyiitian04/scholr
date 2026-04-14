@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 
+/** Global error boundary that logs the error to the console and renders a "Something went wrong" screen with a retry button. */
 export default function Error({
   error,
   reset,

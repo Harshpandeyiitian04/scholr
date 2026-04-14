@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabasePublicConfig } from "@/lib/supabase/config";
 
+/** Next.js middleware that refreshes the Supabase session cookie, protects dashboard routes by redirecting unauthenticated users to /login, and redirects already-logged-in users away from /login and /signup. */
 export async function proxy(request: NextRequest) {
   const { url, anonKey } = getSupabasePublicConfig();
 
@@ -11,9 +12,11 @@ export async function proxy(request: NextRequest) {
 
   const supabase = createServerClient(url, anonKey, {
     cookies: {
+      /** Returns all cookies from the incoming request. */
       getAll() {
         return request.cookies.getAll();
       },
+      /** Writes updated session cookies onto both the request and the outgoing response. */
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         supabaseResponse = NextResponse.next({ request });
@@ -31,11 +34,9 @@ export async function proxy(request: NextRequest) {
     } = await supabase.auth.getUser();
     user = authUser;
   } catch {
-    // Treat transient Supabase auth fetch failures as unauthenticated requests.
     user = null;
   }
 
-  // Protect dashboard routes
   const isDashboard = request.nextUrl.pathname.startsWith("/dashboard");
   if (isDashboard && !user) {
     const url = request.nextUrl.clone();
@@ -44,7 +45,6 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect logged-in users away from auth pages
   const isAuthPage =
     request.nextUrl.pathname === "/login" ||
     request.nextUrl.pathname === "/signup";

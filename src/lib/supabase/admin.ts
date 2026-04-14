@@ -1,7 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { getSupabasePublicConfig, getSupabaseServiceRoleKey } from "./config";
 
-// Service role client - only used in API routes, never exposed to browser
+/** Creates and returns a Supabase client authenticated with the service role key. Only use this in API routes — never expose it to the browser. */
 export function createAdminClient() {
   const { url } = getSupabasePublicConfig();
   const serviceRoleKey = getSupabaseServiceRoleKey();

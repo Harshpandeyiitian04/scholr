@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { Quiz, QuizQuestion } from "@/types/database";
 
+/** Loads a quiz by ID, manages answer state and a live timer, and displays either the question flow or the graded results screen. */
 export default function TakeQuizPage({
   params,
 }: {
@@ -62,19 +63,20 @@ export default function TakeQuizPage({
       });
   }, [id, router]);
 
-  // Timer
   useEffect(() => {
     if (submitted) return;
     const t = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
     return () => clearInterval(t);
   }, [submitted, startTime]);
 
+  /** Converts a number of seconds into a mm:ss display string. */
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
     const sec = s % 60;
     return `${m}:${sec.toString().padStart(2, "0")}`;
   };
 
+  /** Records the user's answer for a given question ID, replacing any previous answer. */
   const handleAnswer = useCallback(
     (questionId: string, value: string | number) => {
       setAnswers((prev) => ({ ...prev, [questionId]: value }));
@@ -82,6 +84,7 @@ export default function TakeQuizPage({
     []
   );
 
+  /** Validates all questions are answered, submits answers to the grading API, and reveals the results screen. */
   async function handleSubmit() {
     if (!quiz) return;
     const unanswered = quiz.questions.filter((q) => answers[q.id] === undefined);
@@ -121,7 +124,6 @@ export default function TakeQuizPage({
 
   if (!quiz) return null;
 
-  // ── Results screen ────────────────────────────────────────────────────────
   if (submitted && results) {
     const pct = Math.round((results.score / results.total) * 100);
     const grade =
@@ -130,7 +132,6 @@ export default function TakeQuizPage({
       pct >= 40 ? { label: "Needs work", color: "text-orange-400" } :
                   { label: "Keep studying", color: "text-red-400" };
 
-    // Group wrong answers by topic
     const wrongByTopic: Record<string, number> = {};
     results.gradedAnswers.forEach((a) => {
       if (!a.isCorrect) {
@@ -140,7 +141,6 @@ export default function TakeQuizPage({
 
     return (
       <div className="p-6 max-w-2xl">
-        {/* Score card */}
         <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6 mb-6 text-center">
           <div className="text-6xl font-bold text-white mb-1">
             {results.score}
@@ -181,7 +181,6 @@ export default function TakeQuizPage({
           </div>
         </div>
 
-        {/* Question review */}
         <h2 className="text-sm font-semibold text-zinc-300 mb-3">Review</h2>
         <div className="space-y-4">
           {quiz.questions.map((q, i) => {
@@ -268,14 +267,12 @@ export default function TakeQuizPage({
     );
   }
 
-  // ── Quiz-taking screen ────────────────────────────────────────────────────
   const q: QuizQuestion = quiz.questions[current];
   const answeredCount = Object.keys(answers).length;
   const progress = (answeredCount / quiz.questions.length) * 100;
 
   return (
     <div className="p-6 max-w-2xl">
-      {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-base font-semibold text-white truncate mr-4">
           {quiz.title}
@@ -286,7 +283,6 @@ export default function TakeQuizPage({
         </div>
       </div>
 
-      {/* Progress bar */}
       <div className="h-1 bg-white/5 rounded-full mb-6 overflow-hidden">
         <div
           className="h-full bg-indigo-500 rounded-full transition-all duration-500"
@@ -294,7 +290,6 @@ export default function TakeQuizPage({
         />
       </div>
 
-      {/* Question dots */}
       <div className="flex flex-wrap gap-1.5 mb-6">
         {quiz.questions.map((qItem, i) => (
           <button
@@ -314,7 +309,6 @@ export default function TakeQuizPage({
         ))}
       </div>
 
-      {/* Question card */}
       <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 mb-4">
         <div className="flex items-center gap-2 mb-4">
           <span className="text-[11px] px-2 py-0.5 rounded bg-white/5 text-zinc-500">
@@ -335,7 +329,6 @@ export default function TakeQuizPage({
 
         <p className="text-white text-sm leading-relaxed mb-5">{q.question}</p>
 
-        {/* MCQ / True-False / Assertion-Reason */}
         {q.options && q.options.length > 0 && (
           <div className="space-y-2">
             {q.options.map((opt, idx) => (
@@ -358,7 +351,6 @@ export default function TakeQuizPage({
           </div>
         )}
 
-        {/* Fill in the blank / Short answer */}
         {(q.type === "fill_blank" || q.type === "short_answer") && (
           <input
             type="text"
@@ -372,7 +364,6 @@ export default function TakeQuizPage({
         )}
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center justify-between">
         <button
           onClick={() => setCurrent((c) => Math.max(0, c - 1))}

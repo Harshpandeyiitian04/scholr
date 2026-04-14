@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+/** Aggregates the authenticated user's study data — quiz scores, weak topics, difficulty breakdown, activity heatmap, and streak — and returns it as a single JSON payload for the analytics dashboard. */
 export async function GET() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    // Run all queries in parallel
     const [
       { data: profile },
       { data: documents, count: docCount },
@@ -38,7 +38,6 @@ export async function GET() {
         .eq("role", "user"),
     ]);
 
-    // ── Quiz performance metrics ───────────────────────────────────────────
     const attemptList = attempts ?? [];
     const totalAttempts = attemptList.length;
     const avgScore =
@@ -57,7 +56,6 @@ export async function GET() {
           )
         : 0;
 
-    // ── Score over time (last 14 attempts) ────────────────────────────────
     const scoreHistory = attemptList.slice(-14).map((a) => ({
       date: new Date(a.completed_at).toLocaleDateString("en-IN", {
         month: "short",
@@ -67,7 +65,6 @@ export async function GET() {
       raw: `${a.score}/${a.total}`,
     }));
 
-    // ── Weak topics (from wrong answers) ──────────────────────────────────
     const topicErrors: Record<string, { wrong: number; total: number }> = {};
     attemptList.forEach((attempt) => {
       const answers = attempt.answers as {
@@ -94,7 +91,6 @@ export async function GET() {
       .sort((a, b) => b.errorRate - a.errorRate)
       .slice(0, 8);
 
-    // ── Difficulty breakdown ──────────────────────────────────────────────
     const difficultyMap: Record<string, { correct: number; total: number }> = {};
     attemptList.forEach((attempt) => {
       const answers = attempt.answers as {
@@ -120,7 +116,6 @@ export async function GET() {
           : null,
     }));
 
-    // ── Activity heatmap (last 30 days) ───────────────────────────────────
     const now = new Date();
     const activityMap: Record<string, number> = {};
     for (let i = 29; i >= 0; i--) {
@@ -129,13 +124,11 @@ export async function GET() {
       activityMap[d.toISOString().slice(0, 10)] = 0;
     }
 
-    // Count quiz attempts per day
     attemptList.forEach((a) => {
       const day = a.completed_at.slice(0, 10);
       if (activityMap[day] !== undefined) activityMap[day]++;
     });
 
-    // Count chat messages per day
     (chats ?? []).forEach((c: { created_at: string }) => {
       const day = c.created_at.slice(0, 10);
       if (activityMap[day] !== undefined) activityMap[day]++;
@@ -147,7 +140,6 @@ export async function GET() {
       day: new Date(date).toLocaleDateString("en-IN", { weekday: "short" }),
     }));
 
-    // ── Study streak ──────────────────────────────────────────────────────
     let streak = 0;
     const today = new Date().toISOString().slice(0, 10);
     const days = Object.keys(activityMap).sort().reverse();
@@ -156,7 +148,6 @@ export async function GET() {
       else if (day !== today) break;
     }
 
-    // ── Total study time estimate (avg 2 min per quiz question) ──────────
     const totalMinutes = attemptList.reduce((acc, a) => {
       return acc + (a.time_taken ? Math.floor(a.time_taken / 60) : a.total * 2);
     }, 0);

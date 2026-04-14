@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+/** Renders the 404 page shown when a route does not exist, with a link back to the home page. */
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">

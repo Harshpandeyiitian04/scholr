@@ -6,6 +6,7 @@ const requiredEnvVars = [
   "GROQ_API_KEY",
 ] as const;
 
+/** Checks that all required environment variables are present and throws a descriptive error listing any that are missing. */
 export function validateEnv() {
   const missing: string[] = [];
   for (const key of requiredEnvVars) {

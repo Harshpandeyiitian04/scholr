@@ -5,6 +5,7 @@ import { groq } from "@/lib/ai/client";
 
 export const maxDuration = 60;
 
+/** Handles a chat message by splitting the document text into chunks, scoring them by keyword overlap with the user's question, and streaming a Groq LLM response grounded in the most relevant chunks. The user and assistant messages are saved to the database in the background. */
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -23,7 +24,6 @@ export async function POST(req: NextRequest) {
 
     const admin = createAdminClient();
 
-    // Fetch document text
     const { data: doc } = await admin
       .from("documents")
       .select("title, extracted_text, summary")
@@ -35,8 +35,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Document not ready" }, { status: 404 });
     }
 
-    // Simple keyword-based context retrieval
-    // Split text into chunks and find relevant ones
     const chunkSize = 800;
     const chunks: string[] = [];
     const text = doc.extracted_text;
@@ -44,7 +42,6 @@ export async function POST(req: NextRequest) {
       chunks.push(text.slice(i, i + chunkSize));
     }
 
-    // Score chunks by keyword overlap with the question
     const queryWords = message
       .toLowerCase()
       .split(/\s+/)
@@ -61,14 +58,12 @@ export async function POST(req: NextRequest) {
       })
       .sort((a, b) => b.score - a.score);
 
-    // Take top 3 most relevant chunks
     const relevantContext = scored
       .slice(0, 3)
       .sort((a, b) => a.i - b.i)
       .map((c) => c.chunk)
       .join("\n\n");
 
-    // Build conversation history for Groq (last 6 messages max)
     const recentHistory = history.slice(-6);
 
     const systemPrompt = `You are an expert AI tutor helping an Indian engineering student study their notes.
@@ -91,7 +86,6 @@ Rules:
 - Keep answers focused and exam-relevant
 - Use simple language suitable for engineering students`;
 
-    // Streaming response
     const stream = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       max_tokens: 1024,
@@ -103,7 +97,6 @@ Rules:
       ],
     });
 
-    // Save user message to DB (don't await — fire and forget)
     admin.from("chats").insert([
       {
         user_id: user.id,
@@ -113,11 +106,11 @@ Rules:
       },
     ]).then(() => {}, () => {});
 
-    // Stream tokens back to client
     const encoder = new TextEncoder();
     let fullResponse = "";
 
     const readable = new ReadableStream({
+      /** Iterates over the Groq token stream, pushes each token as an SSE frame to the client, and persists the completed assistant message after the stream closes. */
       async start(controller) {
         try {
           for await (const chunk of stream) {
@@ -130,7 +123,6 @@ Rules:
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
           controller.close();
 
-          // Save assistant response after streaming completes
           admin.from("chats").insert([{
             user_id: user.id,
             document_id: documentId,

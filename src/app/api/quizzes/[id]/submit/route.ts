@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+/** Grades the submitted answers against the correct answers stored in the quiz, saves the attempt to the database, and returns the score and per-question feedback. */
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -27,7 +28,6 @@ export async function POST(
 
     if (!quiz) return NextResponse.json({ error: "Quiz not found" }, { status: 404 });
 
-    // Grade answers
     let score = 0;
     const gradedAnswers = quiz.questions.map((q: {
       id: string;
@@ -52,7 +52,6 @@ export async function POST(
       };
     });
 
-    // Save attempt
     const { data: attempt } = await admin
       .from("quiz_attempts")
       .insert({

@@ -18,12 +18,14 @@ type Status = "idle" | "uploading" | "processing" | "done" | "error";
 
 interface FileState { file: File; status: Status; progress: number; docId?: string; error?: string; }
 
+/** Renders the file upload page with a drag-and-drop zone, file list, and progress tracking for each upload. */
 export default function UploadPage() {
   const router = useRouter();
   const [files, setFiles] = useState<FileState[]>([]);
   const [drag, setDrag] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  /** Validates each file against accepted types and size limit, then appends valid files to the queue. */
   function addFiles(list: FileList | null) {
     if (!list) return;
     const valid: FileState[] = [];
@@ -36,10 +38,12 @@ export default function UploadPage() {
     if (valid.length) setFiles(p => [...p, ...valid]);
   }
 
+  /** Handles the drop event by preventing default browser behaviour and forwarding the dropped files to addFiles. */
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault(); setDrag(false); addFiles(e.dataTransfer.files);
   }, [files]);
 
+  /** Uploads a single file to Supabase Storage, inserts a document record, and triggers AI processing, updating status at each step. */
   async function processFile(i: number) {
     const fs = files[i];
     const supabase = createClient();
@@ -84,6 +88,7 @@ export default function UploadPage() {
     }
   }
 
+  /** Sequentially processes all files currently in the idle state. */
   async function uploadAll() {
     const idle = files.map((f, i) => ({ f, i })).filter(({ f }) => f.status === "idle").map(({ i }) => i);
     for (const idx of idle) await processFile(idx);
@@ -108,7 +113,6 @@ export default function UploadPage() {
         <p style={{ color: 'var(--text-3)', fontSize: 14 }}>PDF, DOCX, PPTX, or images · Max 20MB · Scanned files supported</p>
       </div>
 
-      {/* Drop zone */}
       <div
         onDragOver={e => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
@@ -139,7 +143,6 @@ export default function UploadPage() {
           onChange={e => { addFiles(e.target.files); e.target.value = ""; }} />
       </div>
 
-      {/* File list */}
       {files.length > 0 && (
         <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
           {files.map((f, i) => {
@@ -173,7 +176,6 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* Actions */}
       {files.length > 0 && (
         <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           {idleCount > 0 && !anyBusy && (

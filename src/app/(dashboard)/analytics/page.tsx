@@ -39,6 +39,7 @@ interface AnalyticsData {
   recentDocs: { id: string; title: string; status: string; created_at: string }[];
 }
 
+/** Renders a single stat tile with an icon, label, numeric value, and optional sub-text. */
 function StatCard({ icon: Icon, label, value, sub, color = "var(--text-1)" }: {
   icon: React.ElementType; label: string; value: string | number; sub?: string; color?: string;
 }) {
@@ -54,7 +55,7 @@ function StatCard({ icon: Icon, label, value, sub, color = "var(--text-1)" }: {
   );
 }
 
-// Mini bar chart using pure CSS/div
+/** Renders a bar chart of quiz scores using CSS divs, colouring each bar green, amber, or red based on the score. */
 function ScoreChart({ data }: { data: { date: string; score: number; raw: string }[] }) {
   if (data.length === 0) return (
     <div className="h-32 flex items-center justify-center text-zinc-600 text-sm">
@@ -89,7 +90,7 @@ function ScoreChart({ data }: { data: { date: string; score: number; raw: string
   );
 }
 
-// Activity heatmap — last 30 days as a row of squares
+/** Renders a 30-day activity heatmap as a row of colour-coded squares based on relative daily activity count. */
 function ActivityHeatmap({ data }: { data: { date: string; count: number }[] }) {
   const max = Math.max(...data.map((d) => d.count), 1);
   return (
@@ -115,6 +116,7 @@ function ActivityHeatmap({ data }: { data: { date: string; count: number }[] }) 
   );
 }
 
+/** Fetches analytics data from the API and renders overview stats, score history, difficulty breakdown, weak topics, and an activity heatmap. */
 export default function AnalyticsPage() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -163,7 +165,6 @@ export default function AnalyticsPage() {
         </p>
       </div>
 
-      {/* Streak banner */}
       {overview.streak > 0 && (
         <div className="flex items-center gap-3 p-4 bg-orange-500/10 border border-orange-500/20 rounded-xl mb-6">
           <Flame size={20} className="text-orange-400 shrink-0" />
@@ -178,7 +179,6 @@ export default function AnalyticsPage() {
         </div>
       )}
 
-      {/* Overview stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <StatCard
           icon={FileText}
@@ -240,7 +240,6 @@ export default function AnalyticsPage() {
         />
       </div>
 
-      {/* Score history chart */}
       <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5 mb-4">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp size={15} className="text-indigo-400" />
@@ -269,7 +268,6 @@ export default function AnalyticsPage() {
       </div>
 
       <div className="grid sm:grid-cols-2 gap-4 mb-4">
-        {/* Difficulty breakdown */}
         <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-zinc-300 mb-4">
             Accuracy by difficulty
@@ -306,7 +304,6 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Weak topics */}
         <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5">
           <h2 className="text-sm font-semibold text-zinc-300 mb-4">
             Topics to revise
@@ -360,7 +357,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Activity heatmap */}
       <div className="bg-white/[0.02] border border-white/5 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-zinc-300">

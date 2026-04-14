@@ -27,6 +27,7 @@ const DIFFICULTIES = [
   { id: "mixed", label: "Mixed", color: "text-indigo-400 border-indigo-500/30 bg-indigo-500/5" },
 ];
 
+/** Renders the quiz-creation form where users pick a document, question types, difficulty, and count before generating a quiz. */
 export default function NewQuizPage() {
   const router = useRouter();
   const [docs, setDocs] = useState<Document[]>([]);
@@ -52,6 +53,7 @@ export default function NewQuizPage() {
       });
   }, []);
 
+  /** Toggles a question type on or off, keeping at least one type selected at all times. */
   function toggleType(id: string) {
     setSelectedTypes((prev) =>
       prev.includes(id)
@@ -62,6 +64,7 @@ export default function NewQuizPage() {
     );
   }
 
+  /** Calls the quiz-generation API with the selected options and navigates to the new quiz on success. */
   async function handleGenerate() {
     if (!selectedDoc) {
       toast.error("Select a document first");
@@ -101,7 +104,6 @@ export default function NewQuizPage() {
       </div>
 
       <div className="space-y-6">
-        {/* Document selector */}
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">
             Document
@@ -133,7 +135,6 @@ export default function NewQuizPage() {
           )}
         </div>
 
-        {/* Question types */}
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">
             Question types{" "}
@@ -196,7 +197,6 @@ export default function NewQuizPage() {
           </div>
         </div>
 
-        {/* Difficulty */}
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">
             Difficulty
@@ -220,7 +220,6 @@ export default function NewQuizPage() {
           </div>
         </div>
 
-        {/* Number of questions */}
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-2">
             Number of questions —{" "}
@@ -241,7 +240,6 @@ export default function NewQuizPage() {
           </div>
         </div>
 
-        {/* Generate button */}
         <button
           onClick={handleGenerate}
           disabled={loading || docs.length === 0}

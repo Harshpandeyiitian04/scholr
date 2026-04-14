@@ -5,8 +5,8 @@ type SupabaseEnvVar =
   | "NEXT_PUBLIC_SUPABASE_ANON_KEY"
   | "SUPABASE_SERVICE_ROLE_KEY";
 
+/** Returns the raw process.env value for the given Supabase environment variable using a switch to ensure Next.js inlines public values in client bundles. */
 function getRawEnv(name: SupabaseEnvVar): string | undefined {
-  // Next.js only inlines public env values for direct property access in client bundles.
   switch (name) {
     case "NEXT_PUBLIC_SUPABASE_URL":
       return process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,6 +17,7 @@ function getRawEnv(name: SupabaseEnvVar): string | undefined {
   }
 }
 
+/** Reads a Supabase environment variable, validates it is non-empty, and strips any surrounding quotes. */
 function readEnv(name: SupabaseEnvVar): string {
   const rawValue = getRawEnv(name);
   if (!rawValue) {
@@ -32,6 +33,7 @@ function readEnv(name: SupabaseEnvVar): string {
   return (quotedMatch?.[1] ?? trimmed).trim();
 }
 
+/** Reads NEXT_PUBLIC_SUPABASE_URL and validates it is a well-formed URL before returning it. */
 function readSupabaseUrl(): string {
   const url = readEnv("NEXT_PUBLIC_SUPABASE_URL");
 
@@ -46,6 +48,7 @@ function readSupabaseUrl(): string {
   return url;
 }
 
+/** Returns the validated public Supabase project URL and anon key needed to initialise a browser or server client. */
 export function getSupabasePublicConfig() {
   return {
     url: readSupabaseUrl(),
@@ -53,6 +56,7 @@ export function getSupabasePublicConfig() {
   };
 }
 
+/** Returns the Supabase service role key used to create admin clients in API routes. */
 export function getSupabaseServiceRoleKey() {
   return readEnv("SUPABASE_SERVICE_ROLE_KEY");
 }

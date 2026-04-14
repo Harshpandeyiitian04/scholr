@@ -12,11 +12,11 @@ const features = [
   { icon: BarChart2,     title: "Performance analytics", desc: "Track weak topics, streaks, and improvement over time." },
 ];
 
+/** Renders the public landing page with a nav bar, hero section, feature grid, CTA block, and footer. */
 export default function LandingPage() {
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", fontFamily: "'Plus Jakarta Sans', sans-serif", overflowX: "hidden" }}>
 
-      {/* ── Nav ─────────────────────────────────────────────────────── */}
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 50,
         borderBottom: "1px solid rgba(255,255,255,0.06)",
@@ -45,19 +45,15 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* ── Hero ────────────────────────────────────────────────────── */}
       <section style={{ paddingTop: 120, paddingBottom: 80, paddingLeft: 24, paddingRight: 24, textAlign: "center", position: "relative", overflow: "hidden" }}>
-        {/* Glow */}
         <div style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)", width: 700, height: 400, background: "radial-gradient(ellipse, rgba(99,102,241,0.1) 0%, transparent 70%)", filter: "blur(40px)", pointerEvents: "none" }} />
 
         <div style={{ position: "relative", maxWidth: 680, margin: "0 auto" }}>
-          {/* Badge */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 999, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)", fontSize: 12, color: "#a5b4fc", marginBottom: 28 }}>
             <Sparkles size={12} />
             Built for IIT &amp; engineering students · 100% free
           </div>
 
-          {/* Heading — fixed px sizes, no clamp */}
           <h1 style={{ fontSize: 48, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, color: "var(--text-1)", margin: "0 0 20px" }}>
             Study smarter with{" "}
             <span style={{
@@ -75,7 +71,6 @@ export default function LandingPage() {
             Upload your notes, textbooks, or lab manuals. Scholr reads everything — including scanned images — and becomes your personal AI tutor.
           </p>
 
-          {/* CTA buttons */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
             <Link href="/signup" style={{
               display: "inline-flex", alignItems: "center", gap: 8,
@@ -95,7 +90,6 @@ export default function LandingPage() {
             </Link>
           </div>
 
-          {/* Trust badges */}
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
             {[{ icon: Shield, text: "No credit card" }, { icon: Clock, text: "Ready in 60 seconds" }, { icon: Zap, text: "OCR for scanned PDFs" }].map(({ icon: Icon, text }) => (
               <div key={text} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-3)" }}>
@@ -105,10 +99,8 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Preview card */}
         <div style={{ maxWidth: 520, margin: "52px auto 0", position: "relative" }}>
           <div style={{ background: "var(--bg-card)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 18, padding: 20, boxShadow: "0 0 60px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.04)", textAlign: "left" }}>
-            {/* Fake window bar */}
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(239,68,68,0.6)" }} />
               <div style={{ width: 10, height: 10, borderRadius: "50%", background: "rgba(245,158,11,0.6)" }} />
@@ -116,7 +108,6 @@ export default function LandingPage() {
               <span style={{ fontSize: 11, color: "var(--text-3)", marginLeft: 8 }}>Scholr — AI Study Platform</span>
             </div>
 
-            {/* Stats row */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
               {[
                 { label: "Avg score", value: "84%", color: "#4ade80" },
@@ -130,7 +121,6 @@ export default function LandingPage() {
               ))}
             </div>
 
-            {/* AI chat bubble */}
             <div style={{ padding: "12px 14px", borderRadius: 12, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)" }}>
               <div style={{ display: "flex", gap: 10 }}>
                 <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1 }}>
@@ -147,7 +137,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features ────────────────────────────────────────────────── */}
       <section style={{ padding: "80px 24px", background: "rgba(255,255,255,0.01)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 980, margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: 52 }}>
@@ -180,7 +169,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── CTA ─────────────────────────────────────────────────────── */}
       <section style={{ padding: "80px 24px" }}>
         <div style={{ maxWidth: 560, margin: "0 auto", textAlign: "center", background: "var(--bg-card)", border: "1px solid rgba(99,102,241,0.2)", borderRadius: 24, padding: "52px 40px", boxShadow: "0 0 80px rgba(99,102,241,0.07)", position: "relative", overflow: "hidden" }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.5), transparent)" }} />
@@ -205,7 +193,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Footer ──────────────────────────────────────────────────── */}
       <footer style={{ borderTop: "1px solid var(--border)", padding: "28px 24px", textAlign: "center" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 8 }}>
           <div style={{ width: 22, height: 22, borderRadius: 7, background: "linear-gradient(135deg,#6366f1,#7c3aed)", display: "flex", alignItems: "center", justifyContent: "center" }}>

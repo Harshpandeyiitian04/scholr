@@ -30,6 +30,7 @@ const SUGGESTIONS = [
   "List all the topics covered in this document",
 ];
 
+/** Renders the full chat interface — document picker, message history, streaming AI responses, and a send input. */
 export default function ChatPage() {
   const [docs, setDocs] = useState<Document[]>([]);
   const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
@@ -42,7 +43,6 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Load ready documents
   useEffect(() => {
     const supabase = createClient();
     supabase
@@ -56,7 +56,6 @@ export default function ChatPage() {
       });
   }, []);
 
-  // Load chat history when document changes
   useEffect(() => {
     if (!selectedDoc) return;
     setLoadingHistory(true);
@@ -76,11 +75,11 @@ export default function ChatPage() {
       .finally(() => setLoadingHistory(false));
   }, [selectedDoc]);
 
-  // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  /** Sends a user message to the chat API, streams the assistant's response token by token into the message list, and saves the turn to history. */
   const sendMessage = useCallback(
     async (text: string) => {
       if (!selectedDoc || !text.trim() || sending) return;
@@ -89,10 +88,8 @@ export default function ChatPage() {
       setInput("");
       setSending(true);
 
-      // Add user message immediately
       setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
 
-      // Add empty assistant message that will be streamed into
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "", streaming: true },
@@ -159,7 +156,6 @@ export default function ChatPage() {
           }
         }
 
-        // Mark streaming done
         setMessages((prev) => {
           const updated = [...prev];
           const last = updated[updated.length - 1];
@@ -172,7 +168,6 @@ export default function ChatPage() {
         if ((err as Error).name === "AbortError") return;
         const msg = err instanceof Error ? err.message : "Something went wrong";
         toast.error(msg);
-        // Remove the empty streaming message on error
         setMessages((prev) => prev.filter((m) => !m.streaming));
       } finally {
         setSending(false);
@@ -183,6 +178,7 @@ export default function ChatPage() {
     [selectedDoc, sending, messages]
   );
 
+  /** Submits the current input when Enter is pressed without Shift. */
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -190,6 +186,7 @@ export default function ChatPage() {
     }
   }
 
+  /** Clears all messages from the current chat session and shows a success toast. */
   function clearChat() {
     setMessages([]);
     toast.success("Chat cleared");
@@ -197,13 +194,11 @@ export default function ChatPage() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Top bar */}
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 shrink-0">
         <MessageSquare size={16} className="text-indigo-400" />
         <span className="text-sm font-medium text-white">Chat with notes</span>
 
         <div className="ml-auto flex items-center gap-2">
-          {/* Document picker */}
           <div className="relative">
             <button
               onClick={() => setShowDocPicker((v) => !v)}
@@ -258,12 +253,10 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* Messages area */}
       <div
         className="flex-1 overflow-y-auto px-4 py-4 space-y-4"
         onClick={() => setShowDocPicker(false)}
       >
-        {/* Empty state */}
         {!loadingHistory && messages.length === 0 && selectedDoc && (
           <div className="flex flex-col items-center justify-center h-full pb-10">
             <div className="w-12 h-12 rounded-xl bg-indigo-600/10 flex items-center justify-center mb-4">
@@ -290,7 +283,6 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* No document selected */}
         {!selectedDoc && !loadingHistory && (
           <div className="flex flex-col items-center justify-center h-full pb-10">
             <FileText size={32} className="text-zinc-700 mb-3" />
@@ -298,7 +290,6 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Loading history */}
         {loadingHistory && (
           <div className="flex items-center gap-2 text-zinc-600 text-sm py-4">
             <Loader2 size={14} className="animate-spin" />
@@ -306,7 +297,6 @@ export default function ChatPage() {
           </div>
         )}
 
-        {/* Messages */}
         {messages.map((msg, i) => (
           <div
             key={i}
@@ -315,7 +305,6 @@ export default function ChatPage() {
               msg.role === "user" ? "ml-auto flex-row-reverse" : ""
             )}
           >
-            {/* Avatar */}
             <div
               className={cn(
                 "w-7 h-7 rounded-full flex items-center justify-center shrink-0 mt-0.5",
@@ -331,7 +320,6 @@ export default function ChatPage() {
               )}
             </div>
 
-            {/* Bubble */}
             <div
               className={cn(
                 "rounded-2xl px-4 py-3 text-sm leading-relaxed max-w-[80%]",
@@ -356,7 +344,6 @@ export default function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input area */}
       <div className="px-4 pb-4 pt-2 border-t border-white/5 shrink-0">
         {!selectedDoc && (
           <p className="text-center text-xs text-zinc-600 mb-2">

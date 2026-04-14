@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Brain } from "lucide-react";
 
+/** Wraps all auth pages with a centred layout, the Scholr logo, and a soft background glow. */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>

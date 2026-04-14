@@ -12,6 +12,7 @@ const statusCfg: Record<string, { bg: string; color: string; dot: string }> = {
 
 const typeColor: Record<string, string> = { PDF: '#f87171', DOCX: '#60a5fa', PPTX: '#fb923c', JPG: '#a78bfa', PNG: '#a78bfa' };
 
+/** Derives a short file-type label (PDF, DOCX, PPTX, etc.) from a MIME type string. */
 const getType = (mime: string) => {
   if (mime.includes('pdf')) return 'PDF';
   if (mime.includes('word')) return 'DOCX';
@@ -20,6 +21,7 @@ const getType = (mime: string) => {
   return 'FILE';
 };
 
+/** Renders the full documents list — file-type badges, metadata, status indicators, and quick-quiz links — or an empty state when no documents exist yet. */
 export default function DocumentsView({ docs }: { docs: Document[] | null }) {
   return (
     <div className="p-7 max-w-4xl animate-fade-up">

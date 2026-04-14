@@ -16,10 +16,12 @@ const navItems = [
   { href: "/analytics",  icon: BarChart2,         label: "Analytics" },
 ];
 
+/** Renders the fixed left navigation sidebar with logo, nav links, the current user's name and email, and a logout button. */
 export default function Sidebar({ user }: { user: Profile | null }) {
   const pathname = usePathname();
   const router = useRouter();
 
+  /** Signs the user out of Supabase, shows a success toast, and redirects to the landing page. */
   async function handleLogout() {
     await createClient().auth.signOut();
     toast.success("Logged out");
